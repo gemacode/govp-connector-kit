@@ -6,7 +6,7 @@ sin reproducir la lógica de confianza de GOVP Exchange.
 Instalación desde la release pública de GitHub:
 
 ```bash
-npm install github:gemacode/govp-connector-kit#v0.1.0
+npm install github:gemacode/govp-connector-kit#v0.1.1
 ```
 
 ```ts

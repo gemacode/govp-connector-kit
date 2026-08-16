@@ -1,0 +1,17 @@
+name: Error reproducible
+description: Comunica un fallo técnico sin incluir secretos ni datos personales.
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproducción mínima
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión
+    validations:
+      required: true

@@ -1,0 +1,16 @@
+{
+  "name": "@gemacode/govp-connector-kit",
+  "version": "0.1.0",
+  "description": "Open source TypeScript SDK and conformance primitives for GOVP Exchange connectors.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/gemacode/govp-connector-kit.git" },
+  "homepage": "https://github.com/gemacode/govp-connector-kit#readme",
+  "bugs": { "url": "https://github.com/gemacode/govp-connector-kit/issues" },
+  "engines": { "node": ">=20" },
+  "sideEffects": false,
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }, "./simulator": { "types": "./dist/simulator.d.ts", "default": "./dist/simulator.js" } },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit", "test": "vitest run", "check": "npm run typecheck && npm test && npm run build", "prepack": "npm run check" },
+  "devDependencies": { "@types/node": "^24.10.1", "typescript": "~5.9.3", "vitest": "^4.1.0" }
+}

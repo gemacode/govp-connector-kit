@@ -12,5 +12,5 @@
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }, "./simulator": { "types": "./dist/simulator.d.ts", "default": "./dist/simulator.js" } },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit", "test": "vitest run", "check": "npm run typecheck && npm test && npm run build", "prepare": "npm run build", "prepack": "npm run check" },
-  "devDependencies": { "@types/node": "^24.10.1", "typescript": "~5.9.3", "vitest": "^4.1.0" }
+  "devDependencies": { "@types/node": "^24.10.1", "typescript": "~7.0.2", "vitest": "^4.1.0" }
 }

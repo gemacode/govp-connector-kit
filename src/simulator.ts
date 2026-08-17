@@ -1,4 +1,4 @@
-import type { ConnectorPlatform, IssuanceInput } from './index.js';
+import type { ConnectorPlatform, IssuanceInput, WebhookEventType, WebhookSubscription } from './index.js';
 
 type Connector = { id: string; token: string; platform: ConnectorPlatform; label: string; siteUrl: string };
 type RecordItem = { connectorId: string; code: string; input: IssuanceInput; lifecycle: 'active' | 'revoked'; issuedAt: string };
@@ -9,6 +9,7 @@ export function createExchangeSimulator() {
   const connectors = new Map<string, Connector>();
   const records = new Map<string, RecordItem>();
   const receipts = new Map<string, string>();
+  const webhooks = new Map<string, WebhookSubscription & { connectorId: string }>();
   let sequence = 0;
   const fetch: typeof globalThis.fetch = async (input, init = {}) => {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
@@ -33,6 +34,25 @@ export function createExchangeSimulator() {
     }
     if (!connector) return json({ ok: false, error: 'Credencial de conector inválida.' }, 401);
     if (method === 'GET' && url.pathname.endsWith('/connectors/me')) return json({ ok: true, connector: { id: connector.id, platform: connector.platform, label: connector.label, siteUrl: connector.siteUrl, status: 'active' } });
+    if (url.pathname.endsWith('/connectors/webhooks') && method === 'POST') {
+      const id = `webhook-${++sequence}`;
+      const webhook: WebhookSubscription & { connectorId: string } = {
+        id, connectorId: connector.id, url: String(body.url), events: body.events as WebhookEventType[], status: 'active',
+      };
+      webhooks.set(id, webhook);
+      return json({ ok: true, webhook, verification: { schema: 'org.govp.exchange.webhook/1', keyUrl: 'http://localhost/api/exchange/keys/simulator' } }, 201);
+    }
+    if (url.pathname.endsWith('/connectors/webhooks') && method === 'GET') {
+      return json({ ok: true, webhooks: [...webhooks.values()].filter((item) => item.connectorId === connector.id) });
+    }
+    const webhookMatch = url.pathname.match(/\/connectors\/webhooks\/([^/]+)(?:\/(deliveries|retry-failed))?$/);
+    if (webhookMatch) {
+      const webhook = webhooks.get(decodeURIComponent(webhookMatch[1] ?? ''));
+      if (!webhook || webhook.connectorId !== connector.id) return json({ ok: false, error: 'Webhook no encontrado.' }, 404);
+      if (method === 'DELETE' && !webhookMatch[2]) { webhook.status = 'disabled'; return json({ ok: true, status: 'disabled' }); }
+      if (method === 'GET' && webhookMatch[2] === 'deliveries') return json({ ok: true, deliveries: [] });
+      if (method === 'POST' && webhookMatch[2] === 'retry-failed') return json({ ok: true, queued: 0 });
+    }
     if (method === 'POST' && url.pathname.endsWith('/connectors/issue')) {
       const key = headers.get('idempotency-key') ?? '';
       if (key.length < 8) return json({ ok: false, error: 'Idempotency-Key es obligatorio.' }, 422);
@@ -54,7 +74,7 @@ export function createExchangeSimulator() {
     }
     return json({ ok: false, error: 'Ruta no simulada.' }, 404);
   };
-  return { fetch, reset: () => { connectors.clear(); records.clear(); receipts.clear(); sequence = 0; } };
+  return { fetch, reset: () => { connectors.clear(); records.clear(); receipts.clear(); webhooks.clear(); sequence = 0; } };
 }
 
 function reference(code: string, record: RecordItem) {
